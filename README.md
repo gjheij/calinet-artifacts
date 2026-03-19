@@ -17,7 +17,7 @@ exporting them in a **BIDS-compatible physioevents format**.
 
 Launch GUI:
 
-    calinet-artifacts gui --file path/to/file_physio.tsv.gz
+    calinet-artifacts --file path/to/file_physio.tsv.gz
 
 ## 📁 Output
 
@@ -30,15 +30,3 @@ from calinet_artifacts.export import mat_to_physioevents_df
 
 mat_to_physioevents_df("artifacts.mat")
 ```
-
-## 📦 Structure
-
--   cli.py
--   gui.py
--   export.py
--   models.py
--   pspm.py
-
-## 📄 License
-
-Add your license here.
