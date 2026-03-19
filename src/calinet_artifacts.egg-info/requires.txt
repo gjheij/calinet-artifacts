@@ -1,0 +1,7 @@
+pandas
+numpy
+scipy
+
+[gui]
+PySide6
+pyqtgraph
