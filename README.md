@@ -1,5 +1,7 @@
 # calinet-artifacts
 
+![CALINET Overview](artifacts.png)
+
 A lightweight tool for **annotating physiological signal artifacts** and
 exporting them in a **BIDS-compatible physioevents format**.
 
