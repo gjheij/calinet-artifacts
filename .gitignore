@@ -1,0 +1,10 @@
+# Ignore egg files and directories
+.vscode
+*.egg
+*.egg-info/
+src/calinet_artifacts/__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+src/calinet_artifacts/version.py
+build/*

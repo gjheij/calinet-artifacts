@@ -1,17 +1,18 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools_scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "calinet-artifacts"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Artifact annotation tools for BIDS physio data"
 authors = [{name="Calinet"}]
 requires-python = ">=3.9"
 dependencies = [
     "pandas",
     "numpy",
-    "scipy"
+    "scipy",
+    "calinet @ git+https://github.com/gjheij/calinet-main.git"
 ]
 
 [project.optional-dependencies]
@@ -19,6 +20,15 @@ gui = [
     "PySide6",
     "pyqtgraph"
 ]
+
+[tool.setuptools_scm]
+write_to = "src/calinet_artifacts/version.py"
+
+[tool.setuptools.packages.find]
+include = ["src/calinet-artifacts*"]
+
+[tool.setuptools.package-data]
+calinet-artifacts = ["version.py"]
 
 [project.scripts]
 calinet-artifacts = "calinet_artifacts.cli:main"

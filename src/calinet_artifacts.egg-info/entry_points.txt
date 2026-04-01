@@ -1,2 +1,0 @@
-[console_scripts]
-calinet-artifacts = calinet_artifacts.cli:main
