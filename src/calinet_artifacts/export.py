@@ -5,7 +5,7 @@
 import pandas as pd
 
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import  Optional, Union
 
 import pandas as pd
 from scipy.io import loadmat
@@ -13,17 +13,17 @@ from scipy.io import loadmat
 import calinet.core.io as cio
 
 def mat_to_physioevents_df(
-    mat_file: Union[str, Path],
-    out_tsv_gz: Optional[Union[str, Path]] = None,
-    out_json: Optional[Union[str, Path]] = None,
-    *,
-    mat_key: str = "epochs",
-    artifact_type: str = "artifact",
-    channel: str = "unknown",
-    annotator: str = "manual",
-    message: str = "",
-    sampling_frequency: Optional[float] = None,
-) -> pd.DataFrame:
+        mat_file: Union[str, Path],
+        out_tsv_gz: Optional[Union[str, Path]] = None,
+        out_json: Optional[Union[str, Path]] = None,
+        *,
+        mat_key: str = "epochs",
+        artifact_type: str = "artifact",
+        channel: str = "unknown",
+        annotator: str = "manual",
+        message: str = "",
+        sampling_frequency: Optional[float] = None,
+    ) -> pd.DataFrame:
     """
     Read a MATLAB artifact file containing Nx2 onset/offset intervals and convert it
     to a BIDS-like physioevents DataFrame.
