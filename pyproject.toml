@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "calinet-artifacts"
 dynamic = ["version"]
 description = "Artifact annotation tools for BIDS physio data"
-authors = [{name="Calinet"}]
+authors = [{ name = "Calinet" }]
 requires-python = ">=3.9"
 dependencies = [
     "pandas",
@@ -25,10 +25,11 @@ gui = [
 write_to = "src/calinet_artifacts/version.py"
 
 [tool.setuptools.packages.find]
-include = ["src/calinet-artifacts*"]
+where = ["src"]
+include = ["calinet_artifacts*"]
 
 [tool.setuptools.package-data]
-calinet-artifacts = ["version.py"]
+calinet_artifacts = ["version.py"]
 
 [project.scripts]
 calinet-artifacts = "calinet_artifacts.cli:main"
