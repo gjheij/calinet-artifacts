@@ -29,7 +29,11 @@ where = ["src"]
 include = ["calinet_artifacts*"]
 
 [tool.setuptools.package-data]
-calinet_artifacts = ["version.py"]
+calinet_artifacts = [
+    "scripts/*.ps1",
+    "version.py"
+]
 
 [project.scripts]
 calinet-artifacts = "calinet_artifacts.cli:main"
+calinet-artifacts-batch = "calinet_artifacts.cli_batch:main"
