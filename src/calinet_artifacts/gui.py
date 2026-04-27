@@ -594,6 +594,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         QtGui.QShortcut(QtGui.QKeySequence("Delete"), self, activated=self.delete_selected_rows)
         QtGui.QShortcut(QtGui.QKeySequence("A"), self, activated=self.add_interval_from_current_view)
+        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, activated=self.save_annotations)
         QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Left), self, activated=lambda: self.pan_view(-0.2))
         QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Right), self, activated=lambda: self.pan_view(0.2))
 
@@ -669,6 +670,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menu.addAction(open_action)
 
         save_action = QtGui.QAction("Save physioevents", self)
+        save_action.setShortcut(QtGui.QKeySequence("Ctrl+S"))
         save_action.triggered.connect(self.save_annotations)
         menu.addAction(save_action)
 
