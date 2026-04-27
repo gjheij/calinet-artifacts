@@ -155,6 +155,18 @@ def write_physioevents(
         out_json,
         len(intervals),
     )
+
+    columns = [
+        "onset",
+        "duration",
+        "trial_type",
+        "artifact_type",
+        "channel",
+        "annotator",
+        "message",
+    ]
+
+    is_empty = len(intervals) == 0
     logger.debug("Sampling frequency for physioevents export: %s", sampling_frequency)
 
     rows = []
@@ -174,7 +186,8 @@ def write_physioevents(
     df = pd.DataFrame(rows)
     logger.debug("Constructed physioevents dataframe with shape=%s", df.shape)
 
-    df.sort_values(["onset"], ascending=True, inplace=True)
+    if not df.empty:
+        df.sort_values(["onset"], ascending=True, inplace=True)
 
     out_tsv_gz.parent.mkdir(parents=True, exist_ok=True)
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -219,6 +232,8 @@ def write_physioevents(
     cio.save_json(out_json, sidecar)
     logger.info("Finished writing physioevents outputs")
 
+    return is_empty
+
 
 def read_existing_physioevents(path: Path) -> List[ArtifactInterval]:
     logger.debug("Reading existing physioevents from %s", path)
@@ -236,13 +251,26 @@ def read_existing_physioevents(path: Path) -> List[ArtifactInterval]:
 
 
 def intervals_from_physioevents_df(df: pd.DataFrame) -> List[ArtifactInterval]:
-    logger.debug("Converting dataframe to ArtifactInterval list; columns=%s shape=%s", list(df.columns), df.shape)
+    logger.debug(
+        "Converting dataframe to ArtifactInterval list; columns=%s shape=%s",
+        list(df.columns),
+        df.shape,
+    )
+
+    # If file has no columns at all → treat as empty but log warning
+    if df.empty and len(df.columns) == 0:
+        logger.warning("Empty physioevents file has no columns; treating as 0 intervals")
+        return []
 
     required = {"onset", "duration"}
     missing = required - set(df.columns)
     if missing:
         logger.error("Missing required physioevents columns: %s", sorted(missing))
         raise ValueError(f"Missing required columns: {sorted(missing)}")
+
+    # Valid schema but no rows
+    if df.empty:
+        return []
 
     intervals: List[ArtifactInterval] = []
     for _, row in df.iterrows():
@@ -486,6 +514,18 @@ class MainWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.critical(self, "Error loading file", str(e))
 
 
+    def keyPressEvent(self, event):
+        if (
+            event.key() == QtCore.Qt.Key_S
+            and event.modifiers() & QtCore.Qt.ControlModifier
+        ):
+            self.save_annotations()
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
+
+
     def _build_ui(self) -> None:
         central = QtWidgets.QWidget()
         self.setCentralWidget(central)
@@ -591,10 +631,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.reconnect_model_signals()
         self._create_menu()
-
+        
         QtGui.QShortcut(QtGui.QKeySequence("Delete"), self, activated=self.delete_selected_rows)
         QtGui.QShortcut(QtGui.QKeySequence("A"), self, activated=self.add_interval_from_current_view)
-        QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self, activated=self.save_annotations)
         QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Left), self, activated=lambda: self.pan_view(-0.2))
         QtGui.QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_Right), self, activated=lambda: self.pan_view(0.2))
 
@@ -648,7 +687,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 )
             else:
                 logger.debug("Reading TSV-based annotations from %s", path)
-                df = cio.read_physio_tsv_headerless(path)
+                try:
+                    df = cio.read_physio_tsv_headerless(path)
+                except pd.errors.EmptyDataError:
+                    logger.warning("Annotation file is empty; treating as 0 intervals: %s", path)
+                    df = pd.DataFrame(
+                        columns=[
+                            "onset",
+                            "duration",
+                            "trial_type",
+                            "artifact_type",
+                            "channel",
+                            "annotator",
+                            "message",
+                        ]
+                    )
         except Exception as e:
             logger.exception("Could not read annotations from %s", path)
             QtWidgets.QMessageBox.critical(
@@ -1186,11 +1239,7 @@ class MainWindow(QtWidgets.QMainWindow):
             )
 
             logger.info("Saved PsPM annotations to %s", out_mat)
-            QtWidgets.QMessageBox.information(
-                self,
-                "Saved",
-                f"Saved PsPM file:\n{out_mat}",
-            )
+            self.info_label.setText(f"✔ Saved PsPM-file → {out_mat.name} ({interval_count} annotations)")
 
         else:
             logger.debug("Save mode resolved to BIDS physioevents")
@@ -1200,20 +1249,22 @@ class MainWindow(QtWidgets.QMainWindow):
                 fmt="bids"
             )
 
-            write_physioevents(
+            is_empty = write_physioevents(
                 out_tsv,
                 out_json,
                 self.table_model.intervals,
                 sampling_frequency=self.sampling_frequency,
             )
 
-            logger.info("Saved BIDS physioevents to tsv=%s json=%s", out_tsv, out_json)
-            QtWidgets.QMessageBox.information(
-                self,
-                "Saved",
-                "Saved:\n{0}\n{1}".format(str(out_tsv), str(out_json)),
-            )
-
+            if is_empty:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Saved (empty)",
+                    "Saved file contains 0 annotation intervals:\n\n"
+                    f"{out_tsv}\n{out_json}",
+                )
+            else:
+                self.info_label.setText(f"✔ Saved → {out_tsv.name} ({interval_count} annotations)")
 
 def run(
     file: Optional[str] = None,
